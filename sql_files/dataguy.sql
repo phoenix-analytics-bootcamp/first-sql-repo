@@ -1,2 +1,2 @@
 select *
-from omolola.phone_book;
+from omolola.phone_book

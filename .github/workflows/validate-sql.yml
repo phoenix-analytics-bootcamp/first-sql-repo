@@ -16,12 +16,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # fetch full history so git diff works
+          fetch-depth: 0  # Fetch full history for git diff to work properly
 
       - name: Install PostgreSQL client
         run: sudo apt-get install -y postgresql-client
 
-      - name: Run Changed SQL Files
+      - name: Detect and Run Changed SQL Files
         env:
           DB_HOST: ${{ secrets.DB_HOST }}
           DB_PORT: ${{ secrets.DB_PORT }}
@@ -32,11 +32,26 @@ jobs:
           set -e
           export PGPASSWORD=$DB_PASSWORD
 
-          # Only check SQL files inside sql_file/ folder
-          CHANGED_FILES=$(git diff --name-only origin/main -- sql_file/ | grep '.sql$' || true)
+          # Show branches for debug
+          echo "Current Branch: $(git rev-parse --abbrev-ref HEAD)"
+          echo "Fetching main branch for comparison..."
+
+          git fetch origin main || echo "main branch not available yet (new branch?)"
+
+          # Safe diff: if main exists, compare to main; otherwise, use HEAD~1
+          if git show-ref --quiet refs/remotes/origin/main; then
+            DIFF_TARGET="origin/main"
+          else
+            DIFF_TARGET="HEAD~1"
+          fi
+
+          echo "Comparing changes against $DIFF_TARGET"
+
+          # Find changed SQL files inside sql_file/
+          CHANGED_FILES=$(git diff --name-only "$DIFF_TARGET" -- sql_file/ | grep '.sql$' || true)
 
           if [ -z "$CHANGED_FILES" ]; then
-            echo "✅ No SQL files changed. Skipping."
+            echo "✅ No SQL files changed. Skipping SQL execution."
             exit 0
           fi
 

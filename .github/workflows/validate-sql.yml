@@ -3,10 +3,10 @@ name: Validate Changed SQL Files
 on:
   push:
     paths:
-      - '**/*.sql'
+      - 'sql_file/**/*.sql'
   pull_request:
     paths:
-      - '**/*.sql'
+      - 'sql_file/**/*.sql'
 
 jobs:
   validate-sql:
@@ -15,6 +15,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # fetch full history so git diff works
 
       - name: Install PostgreSQL client
         run: sudo apt-get install -y postgresql-client
@@ -27,11 +29,11 @@ jobs:
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           DB_NAME: ${{ secrets.DB_NAME }}
         run: |
-          set -e  # stop immediately on any error
+          set -e
           export PGPASSWORD=$DB_PASSWORD
 
-          # Get only the SQL files changed in this push or pull request
-          CHANGED_FILES=$(git diff --name-only origin/main | grep '.sql$' || true)
+          # Only check SQL files inside sql_file/ folder
+          CHANGED_FILES=$(git diff --name-only origin/main -- sql_file/ | grep '.sql$' || true)
 
           if [ -z "$CHANGED_FILES" ]; then
             echo "✅ No SQL files changed. Skipping."

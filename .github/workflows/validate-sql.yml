@@ -1,9 +1,6 @@
-name: Validate Changed SQL Files
+name: Validate SQL on Pull Request
 
 on:
-  push:
-    paths:
-      - 'sql_file/**/*.sql'
   pull_request:
     paths:
       - 'sql_file/**/*.sql'
@@ -16,7 +13,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Fetch full history for git diff to work properly
+          fetch-depth: 0  # fetch full history for git diff to work properly
 
       - name: Install PostgreSQL client
         run: sudo apt-get install -y postgresql-client
@@ -32,13 +29,9 @@ jobs:
           set -e
           export PGPASSWORD=$DB_PASSWORD
 
-          # Show branches for debug
-          echo "Current Branch: $(git rev-parse --abbrev-ref HEAD)"
           echo "Fetching main branch for comparison..."
-
           git fetch origin main || echo "main branch not available yet (new branch?)"
 
-          # Safe diff: if main exists, compare to main; otherwise, use HEAD~1
           if git show-ref --quiet refs/remotes/origin/main; then
             DIFF_TARGET="origin/main"
           else

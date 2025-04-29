@@ -1,3 +1,3 @@
 select *
 from omolola.phone_book
-where id = 2 ;
+where id = 1 ;

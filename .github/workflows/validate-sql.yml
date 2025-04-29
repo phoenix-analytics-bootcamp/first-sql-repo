@@ -41,7 +41,7 @@ jobs:
           echo "Comparing changes against $DIFF_TARGET"
 
           # Find changed SQL files inside sql_file/
-          CHANGED_FILES=$(git diff --name-only "$DIFF_TARGET" -- sql_file/ | grep '.sql$' || true)
+          CHANGED_FILES=$(git diff --name-only "$DIFF_TARGET" -- sql_files/ | grep '.sql$' || true)
 
           if [ -z "$CHANGED_FILES" ]; then
             echo "✅ No SQL files changed. Skipping SQL execution."
